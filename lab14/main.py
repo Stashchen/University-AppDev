@@ -1,5 +1,8 @@
 import sys
 
+import docx
+from PIL import Image
+
 import PyQt5.QtWidgets as QtWidgets
 from forms.design import Ui_MainWindow
 
@@ -18,6 +21,7 @@ class MainMenu(QtWidgets.QMainWindow, Ui_MainWindow):
         self.graphicsView.showGrid(x=True, y=True)
 
         self.btn.clicked.connect(self.draw)
+        self.word_btn.clicked.connect(self.get_result_in_exel)
 
     def draw(self):
         self.graphicsView.clear()
@@ -62,6 +66,32 @@ class MainMenu(QtWidgets.QMainWindow, Ui_MainWindow):
         for index, val in enumerate(x_lst):
             self.result_table.setItem(0, index, QtWidgets.QTableWidgetItem('{:.2f}'.format(val)))
             self.result_table.setItem(1, index, QtWidgets.QTableWidgetItem('{:.4f}'.format(y_lst[index])))
+
+    def get_result_in_exel(self):
+        import openpyxl as px
+        from openpyxl.chart import LineChart, Reference, Series
+
+        wb = px.Workbook()
+        ws = wb.active
+
+        x = ['X'] + self.equation.x_lst
+        y = ['Y'] + self.equation.y_lst
+
+        rows = list(zip(x, y))
+
+        for row in rows:
+            ws.append(row)
+
+        chart = LineChart()
+        chart.title = 'Result Graph'
+        chart.x_axis.title = 'X'
+        chart.y_axis.title = 'Y'
+        x = Reference(ws, min_col=1, min_row=2, max_row=len(x) + 1)
+        y = Reference(ws, min_col=2, min_row=2, max_row=len(y) + 1)
+        series = Series(y, xvalues=x)
+        chart.append(series)
+        ws.add_chart(chart, 'D3')
+        wb.save('./additional/excel.xlsx')
 
 
 if __name__ == "__main__":

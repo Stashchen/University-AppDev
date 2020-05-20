@@ -1,5 +1,8 @@
 import sys
 
+import docx
+from PIL import Image
+
 import PyQt5.QtWidgets as QtWidgets
 from forms.design import Ui_MainWindow
 
@@ -18,6 +21,7 @@ class MainMenu(QtWidgets.QMainWindow, Ui_MainWindow):
         self.graphicsView.showGrid(x=True, y=True)
 
         self.btn.clicked.connect(self.draw)
+        self.word_btn.clicked.connect(self.get_result_in_word)
 
     def draw(self):
         self.graphicsView.clear()
@@ -63,6 +67,22 @@ class MainMenu(QtWidgets.QMainWindow, Ui_MainWindow):
             self.result_table.setItem(0, index, QtWidgets.QTableWidgetItem('{:.2f}'.format(val)))
             self.result_table.setItem(1, index, QtWidgets.QTableWidgetItem('{:.4f}'.format(y_lst[index])))
 
+    def get_result_in_word(self):
+        import pyautogui
+        image = pyautogui.screenshot()
+        image.save('./additional/image.jpeg')
+        image = Image.open('./additional/image.jpeg')
+        cropped = image.crop((240, 100, 980, 530))
+        cropped.save('./additional/cropped.jpeg')
+
+        docs = docx.Document()
+        parag = docs.add_paragraph()
+        run = parag.add_run()
+        run.add_text('Результат')
+        parag = docs.add_paragraph()
+        run = parag.add_run()
+        run.add_picture('./additional/cropped.jpeg', width=docx.shared.Inches(6), height=docx.shared.Inches(5))
+        docs.save('./additional/word.docx')
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
